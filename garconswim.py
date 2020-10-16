@@ -9,6 +9,8 @@ import argparse
 
 
 class Split:
+    COL_SUMMARY = ["summary", "resumen"]
+    
     """Holds the info about a given split time."""
     def __init__(self, n, stroke, d, t, avg, best, swolf, avg_strokes):        
         self._num = str(n).strip()
@@ -74,7 +76,8 @@ class Split:
     @property
     def is_summary(self):
         num = str(self.num).strip().lower()
-        return num == "summary"
+        
+        return num in Split.COL_SUMMARY
     
     def __str__(self):
         toret = ""
@@ -115,15 +118,28 @@ class Split:
 
 
 class Splits:
-    COL_INTERVALS = "Intervals"
-    COL_SWIM_STROKE = "Swim Stroke"
-    COL_DISTANCE = "Distance"
-    COL_TIME = "Time"
-    COL_PACE = "Avg Pace"
-    COL_BEST_PACE = "Best Pace"
-    COL_SWOLF = "Avg. Swolf"
-    COL_STROKES = "Avg Strokes"
+    COL_INTERVALS =   ["intervals", "intervalos"]
+    COL_SWIM_STROKE = ["swim stroke", "estilo de natación"]
+    COL_DISTANCE =    ["distance", "distancia"]
+    COL_TIME =        ["time", "tiempo"]
+    COL_PACE =        ["avg pace", "ritmo medio"]
+    COL_BEST_PACE =   ["best pace", "ritmo óptimo"]
+    COL_SWOLF =       ["avg swolf", "swolf medio"]
+    COL_STROKES =     ["avg strokes", "promedio de brazadas"]
+    COL_REST =        ["rest", "descanso"]
     
+    @staticmethod
+    def get_column_from(column_list, dict_row):
+        toret = None
+        
+        
+        for col in column_list:
+            for dict_col in dict_row.keys():
+                if col == dict_col.lower().replace('.', ""):
+                    toret = dict_row[dict_col]
+                    break
+        
+        return toret
     
     """Holds all splits"""
     def __init__(self, nf):
@@ -159,30 +175,40 @@ class Splits:
                 for row in reader:
                     i += 1
                     
-                    if (not row[Splits.COL_INTERVALS]
-                    or '.' in row[Splits.COL_INTERVALS]):
-                        continue            # Discard splits per length
+                    column_intervals = Splits.get_column_from(Splits.COL_INTERVALS, row)
+                    column_stroke = Splits.get_column_from(Splits.COL_SWIM_STROKE, row)
+                    column_avg_strokes = Splits.get_column_from(Splits.COL_STROKES, row)
+                    column_time = Splits.get_column_from(Splits.COL_TIME, row)
                     
                     # Put the "resting time" in the previous split
-                    if row[Splits.COL_SWIM_STROKE].strip().lower() == "rest":
-                        rest_time = row[Splits.COL_TIME]
+                    if column_stroke.strip().lower() in Splits.COL_REST:
                         if len(self._splits) > 0:
-                            self._splits[-1].set_rest(rest_time)
+                            self._splits[-1].set_rest(column_time)
                         continue
                     
-                    avg_strokes = row[Splits.COL_STROKES]
-                    if (not avg_strokes
-                        or avg_strokes == "--"):
-                        avg_strokes = 0
+                    # Is it an intermdiate interval?
+                    if (not column_intervals
+                    or '.' in column_intervals):
+                        continue            # Discard splits per length
+                    
+                    # Get the average strokes
+                    if (not column_avg_strokes
+                        or column_avg_strokes == "--"):
+                        column_avg_strokes = 0
+                        
+                    column_distance = Splits.get_column_from(Splits.COL_DISTANCE, row)
+                    column_pace = Splits.get_column_from(Splits.COL_PACE, row)
+                    column_best_pace = Splits.get_column_from(Splits.COL_BEST_PACE, row)
+                    column_swolf = Splits.get_column_from(Splits.COL_SWOLF, row)
                                        
-                    split = Split(row[Splits.COL_INTERVALS],    # num
-                                  row[Splits.COL_SWIM_STROKE],  # stroke style
-                                  row[Splits.COL_DISTANCE],     # distance
-                                  row[Splits.COL_TIME],         # time
-                                  row[Splits.COL_PACE],         # avg
-                                  row[Splits.COL_BEST_PACE],    # best
-                                  row[Splits.COL_SWOLF],        # swolf
-                                  avg_strokes)
+                    split = Split(column_intervals,    # num
+                                  column_stroke,       # stroke style
+                                  column_distance,     # distance
+                                  column_time,         # time
+                                  column_pace,         # avg
+                                  column_best_pace,    # best
+                                  column_swolf,        # swolf
+                                  column_avg_strokes)
                                         
                     if split.is_summary:
                         self.set_summary(split)
