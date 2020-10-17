@@ -109,7 +109,7 @@ class Split:
             toret += str.format(" (best: {}/100m)", best_pace)
 
         if self.avg_strokes and int(self.avg_strokes) > 0:
-            toret += " AvgStrokes: " + str(self.avg_strokes)
+            toret += " avg. Strokes: " + str(self.avg_strokes)
             
         if len(self.rest_time) > 0:
             toret += " (+" + str(self.rest_time) + ')'
