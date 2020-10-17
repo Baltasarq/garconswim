@@ -112,7 +112,7 @@ class Split:
             toret += " AvgStrokes: " + str(self.avg_strokes)
             
         if len(self.rest_time) > 0:
-            toret += " d(" + str(self.rest_time) + ')'
+            toret += " (+" + str(self.rest_time) + ')'
             
         return toret + "\n"
 
