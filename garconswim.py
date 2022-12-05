@@ -83,20 +83,19 @@ class Split:
         toret = ""
         
         if not self.is_summary:
-           toret += "    #" + self.num + ' '
+           toret += f"    #{self.num} "
             
-        toret += str.format("{}m {} {}",
-                          self.distance,
-                          self.stroke_style,
-                          self.time)
-        
+        toret += f"{self.distance}m {self.stroke_style} {self.time}"
+
         avg_pace = str(self.avg_pace).strip()
         if len(avg_pace) > 0 and avg_pace != "0":
-            if not self.is_summary:
-                toret += "\n\t"
-            else:
-                toret += ' '
-            toret += avg_pace + "/100m"
+            toret += f" {avg_pace}/100m"
+            
+        if len(self.rest_time) > 0:
+            toret += f" +{self.rest_time}"
+        
+        if not self.is_summary:
+            toret += "\n\t"
         
         swolf = str(self.swolf).strip()
         if len(swolf) > 0 and swolf != "0":
@@ -110,9 +109,6 @@ class Split:
 
         if self.avg_strokes and int(self.avg_strokes) > 0:
             toret += " avg. Strokes: " + str(self.avg_strokes)
-            
-        if len(self.rest_time) > 0:
-            toret += " (+" + str(self.rest_time) + ')'
             
         return toret + "\n"
 
@@ -131,7 +127,6 @@ class Splits:
     @staticmethod
     def get_column_from(column_list, dict_row):
         toret = None
-        
         
         for col in column_list:
             for dict_col in dict_row.keys():
